@@ -24,6 +24,10 @@ namespace HeavyTraffic
 
         public Settings(IMod mod) : base(mod)
         {
+            if (fake_traffic_spawn_rate_extreme == 0)
+            {
+                SetDefaults();
+            }
         }
 
         public override void SetDefaults()
