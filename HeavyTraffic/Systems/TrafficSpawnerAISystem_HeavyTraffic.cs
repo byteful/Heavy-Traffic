@@ -51,12 +51,18 @@ namespace HeavyTraffic.Systems
 
         public override int GetUpdateInterval(SystemUpdatePhase phase)
         {
-            return phase == SystemUpdatePhase.LoadSimulation ? 16 : 256;
+            // ORIG:
+            //return phase == SystemUpdatePhase.LoadSimulation ? 16 : 256;
+            // MOD:
+            return 4;
         }
 
         public override int GetUpdateOffset(SystemUpdatePhase phase)
         {
-            return phase == SystemUpdatePhase.LoadSimulation ? 2 : 32;
+            // ORIG:
+            //return phase == SystemUpdatePhase.LoadSimulation ? 2 : 32;
+            // MOD:
+            return 2;
         }
 
         [Preserve]
@@ -266,17 +272,31 @@ namespace HeavyTraffic.Systems
                 
                 TrafficSpawnerData prefabTrafficSpawnerData = m_PrefabTrafficSpawnerData[prefabRef.m_Prefab];
                 
-                // ORIG: float num1 = prefabTrafficSpawnerData.m_SpawnRate * 4.266667f;
-                // MOD:
-                float num1 = prefabTrafficSpawnerData.m_SpawnRate * 4.266667f * spawnRateMultiplierFloat;
+                // ORIG START
+                // float num1 = prefabTrafficSpawnerData.m_SpawnRate * 4.266667f;
+                // float num2 = random.NextFloat(num1 * 0.5f, num1 * 1.5f);
+                // if (MathUtils.RoundToIntRandom(ref random, num2) > 0 &&
+                // !m_RandomTrafficRequestData.HasComponent(trafficSpawner.m_TrafficRequest))
+                // {
+                //     RequestVehicle(jobIndex, ref random, entity, prefabTrafficSpawnerData);
+                // }
+                // ORIG END
                 
-                float num2 = random.NextFloat(num1 * 0.5f, num1 * 1.5f);
+                // MOD START
+                // The original UpdateInterval was 256, but we changed it to 4. This is a compensation for that.
+                const float updateIntervalChangeFix = (256 / 4);
+                float requestChance = 1f / updateIntervalChangeFix;
                 
-                if (MathUtils.RoundToIntRandom(ref random, num2) > 0 &&
+                requestChance *= spawnRateMultiplierFloat;
+                
+                bool shouldSpawnThisTick = random.NextFloat(0, 1) <= requestChance;
+                
+                if (shouldSpawnThisTick &&
                     !m_RandomTrafficRequestData.HasComponent(trafficSpawner.m_TrafficRequest))
                 {
                     RequestVehicle(jobIndex, ref random, entity, prefabTrafficSpawnerData);
                 }
+                // MOD END
                 
                 for (int index1 = 0; index1 < dispatches.Length; ++index1)
                 {

@@ -10,14 +10,14 @@ namespace HeavyTraffic
     [FileLocation(@"ModsSettings\HeavyTraffic\HeavyTraffic")]
     public class Settings : ModSetting
     {
-        [SettingsUISlider(min = 0, max = 100, step = 1, scalarMultiplier = 1, unit = Unit.kInteger)]
-        public int fake_traffic_spawn_rate { get; set; } = 100;
+        [SettingsUISlider(min = 0, max = 50, step = 1, scalarMultiplier = 1, unit = Unit.kInteger)]
+        public int fake_traffic_spawn_rate { get; set; }
         
         [SettingsUISlider(min = 0, max = 100, step = 1, scalarMultiplier = 1, unit = Unit.kPercentage)]
-        public int fake_traffic_spawn_rate_fine_control { get; set; } = 0;
+        public int fake_traffic_spawn_rate_fine_control { get; set; }
         
         [SettingsUISlider(min = 1, max = 1000, step = 1, scalarMultiplier = 1, unit = Unit.kInteger)]
-        public int fake_traffic_spawn_rate_extreme { get; set; } = 100;
+        public int fake_traffic_spawn_rate_extreme { get; set; }
         
         public int TotalOutsideTrafficPercent => 
             ((fake_traffic_spawn_rate * 100) + fake_traffic_spawn_rate_fine_control) * fake_traffic_spawn_rate_extreme;
