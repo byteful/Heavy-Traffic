@@ -7,15 +7,20 @@ using Game.UI;
 
 namespace HeavyTraffic
 {
+    [FileLocation(@"ModsSettings\HeavyTraffic\HeavyTraffic")]
     public class Settings : ModSetting
     {
-        [SettingsUISlider(min = 0, max = 1000, step = 1, scalarMultiplier = 1, unit = Unit.kPercentage)]
+        [SettingsUISlider(min = 0, max = 100, step = 1, scalarMultiplier = 1, unit = Unit.kInteger)]
         public int fake_traffic_spawn_rate { get; set; } = 100;
         
-        [SettingsUISlider(min = 0, max = 20, step = 1, scalarMultiplier = 1, unit = Unit.kInteger)]
-        public int fake_traffic_spawn_rate_multiplier { get; set; } = 1;
+        [SettingsUISlider(min = 0, max = 100, step = 1, scalarMultiplier = 1, unit = Unit.kPercentage)]
+        public int fake_traffic_spawn_rate_fine_control { get; set; } = 0;
         
-        public int TotalOutsideTrafficPercent => fake_traffic_spawn_rate * fake_traffic_spawn_rate_multiplier;
+        [SettingsUISlider(min = 1, max = 1000, step = 1, scalarMultiplier = 1, unit = Unit.kInteger)]
+        public int fake_traffic_spawn_rate_extreme { get; set; } = 100;
+        
+        public int TotalOutsideTrafficPercent => 
+            ((fake_traffic_spawn_rate * 100) + fake_traffic_spawn_rate_fine_control) * fake_traffic_spawn_rate_extreme;
 
         public Settings(IMod mod) : base(mod)
         {
@@ -23,8 +28,9 @@ namespace HeavyTraffic
 
         public override void SetDefaults()
         {
-            fake_traffic_spawn_rate = 100;
-            fake_traffic_spawn_rate_multiplier = 1;
+            fake_traffic_spawn_rate = 1;
+            fake_traffic_spawn_rate_fine_control = 0;
+            fake_traffic_spawn_rate_extreme = 1;
         }
 
         public class LocaleEN : IDictionarySource
@@ -42,19 +48,27 @@ namespace HeavyTraffic
                 return new Dictionary<string, string>
                 {
                     {m_Setting.GetSettingsLocaleID(), "Outside Traffic"},
-                    {m_Setting.GetOptionLabelLocaleID(nameof(Settings.fake_traffic_spawn_rate)), "Outside traffic spawn rate"},
+                    {m_Setting.GetOptionLabelLocaleID(nameof(Settings.fake_traffic_spawn_rate)), "Spawn rate"},
                     {
                         m_Setting.GetOptionDescLocaleID(nameof(Settings.fake_traffic_spawn_rate)),
-                        $"How much outside traffic will spawn in %. 100% is a default, vanilla amount of traffic. 0% is no traffic. 200% is double the amount vanilla traffic, etc." +
+                        $"How much outside traffic will spawn relative to vanilla settings. 1 is a default, vanilla amount of traffic. 0 is no traffic. 2 is double the amount vanilla traffic, etc." +
                         $"\n\nOutside traffic are vehicles spawning at an outside connection with a destination set to a random another outside connection. This includes cars, boats, trains and airplanes." +
                         $"\n\nApplied immediately, no game restart necessary."
                     },
                     
-                    {m_Setting.GetOptionLabelLocaleID(nameof(Settings.fake_traffic_spawn_rate_multiplier)), "Outside traffic additional multiplier"},
+                    {m_Setting.GetOptionLabelLocaleID(nameof(Settings.fake_traffic_spawn_rate_fine_control)), "Fine control"},
                     {
-                        m_Setting.GetOptionDescLocaleID(nameof(Settings.fake_traffic_spawn_rate_multiplier)),
-                        $"If the above setting is not enough, set this to more than 1. The above value will be multiplied by this." +
-                        $"\n\ne.g. 200% (above) * 4 (here) will result in 800% or 8x more outside traffic than vanilla." +
+                        m_Setting.GetOptionDescLocaleID(nameof(Settings.fake_traffic_spawn_rate_fine_control)),
+                        $"If the above setting is not fine enough, use this. This value in percents will be added on top of the above value. " +
+                        $"\n\ne.g. 2 (above) * 60% (here) will result in 260% or 2.6x more outside traffic than vanilla." +
+                        $"\n\nApplied immediately, no game restart necessary."
+                    },
+                    
+                    {m_Setting.GetOptionLabelLocaleID(nameof(Settings.fake_traffic_spawn_rate_extreme)), "Spawn rate EXTREME"},
+                    {
+                        m_Setting.GetOptionDescLocaleID(nameof(Settings.fake_traffic_spawn_rate_extreme)),
+                        $"If the above settings did not crash your game, this will. The final outside traffic spawn rate is multiplied by this number. " +
+                        $"\n\ne.g. 50 (above) * 100 (here) will result in 5000x more outside traffic than vanilla." +
                         $"\n\nApplied immediately, no game restart necessary."
                     },
                 };

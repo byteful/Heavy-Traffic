@@ -20,6 +20,12 @@
         <Reference Include="Colossal.Mathematics">
             <Private>false</Private>
         </Reference>
+        <Reference Include="Colossal.PSI">
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="Colossal.PSI.Common">
+            <Private>false</Private>
+        </Reference>
         <Reference Include="Game">
             <Private>false</Private>
         </Reference>
