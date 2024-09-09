@@ -1,0 +1,44 @@
+﻿<Publish>
+	<!--Id must be set in order to update existed mod. it is not required for publishing mod for the first time-->
+	<ModId Value="" />
+	<!--Name of the mod to display to players-->
+	<DisplayName Value="HeavyTraffic" />
+	<!--Short description of the mod-->
+	<ShortDescription Value="Control how much traffic between outside connections will flow through you city." />
+	<!--Long description of the mod. Single line or multi line. Supports minimal markdown subset-->
+	<!--LongDescription Value="This is a long description" /-->
+	<LongDescription>
+This mods grants you control over how much fake traffic will spawn. 
+Fake traffic is cars, boats, trains and planes spawning from an outside connection with a destination set to another outside connection of the same type.
+This can be controlled using a percentage change from 100% being the default, vanilla setting, 0% being no traffic and anything above 100% is more traffic.
+		
+This fake traffic can also be called: outside traffic, dummy traffic, spawner, traffic multiplier, traffic generator, custom traffic, benchmark traffic, intersection tester, interchange tester, outside connections traffic, etc. 
+		
+Why would you want to change the amount of fake traffic?
+- To test your intersections and interchanges with more traffic than the vanilla game provides.
+- To test your intersections and interchanges on an empty map, without a city.
+- To create unrealistic amount of traffic, like 20, 50 or even 100 lanes full of cars.
+- To reduce the amount of traffic to reduce the load on your computer.
+- To increase the amount of traffic to make your city feel more alive.
+	</LongDescription>
+	<!--Thumbnail-->
+	<Thumbnail Value="Properties/Thumbnail.png" />
+	<!--Screenshot, can be set multiple times-->
+	<Screenshot Value="" />
+	<!--Tag, can be set multiple times-->
+	<Tag Value="traffic" /><Tag Value="fake traffic" /><Tag Value="intersection tester" /><Tag Value="interchange tester" /><Tag Value="traffic spawner" /><Tag Value="outside traffic" />
+	<!--Link to the forum post where the mod can be discussed-->
+	<ForumLink Value="" />
+	<!--Version of the mod-->
+	<ModVersion Value="1.0" />
+	<!--Recommended version of the base game to use the mod-->
+	<GameVersion Value="1.0.*" />
+	<!--Dependency for the mod, can be set multiple times-->
+	<Dependency Id="" />
+	<!--Change log for new version. Single line or multi line. Supports minimal markdown subset-->
+	<ChangeLog Value="" />
+	<!--ChangeLog>
+	</ChangeLog-->
+	<!--External link. supported types are discord, github, youtube, twitch, x, paypal, patreon, buymeacoffee, kofi, crowdin, gitlab-->
+	<ExternalLink Type="" Url="" />
+</Publish>
