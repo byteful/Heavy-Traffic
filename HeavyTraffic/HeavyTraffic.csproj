@@ -15,10 +15,10 @@
 
     <ItemGroup>
         <Reference Include="Colossal.Localization">
-          <HintPath>..\..\..\..\SteamLibrary\steamapps\common\Cities Skylines II\Cities2_Data\Managed\Colossal.Localization.dll</HintPath>
+            <Private>false</Private>
         </Reference>
         <Reference Include="Colossal.Mathematics">
-          <HintPath>..\..\..\..\SteamLibrary\steamapps\common\Cities Skylines II\Cities2_Data\Managed\Colossal.Mathematics.dll</HintPath>
+            <Private>false</Private>
         </Reference>
         <Reference Include="Game">
             <Private>false</Private>
