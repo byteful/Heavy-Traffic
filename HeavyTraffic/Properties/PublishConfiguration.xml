@@ -1,6 +1,6 @@
 ﻿<Publish>
 	<!--Id must be set in order to update existed mod. it is not required for publishing mod for the first time-->
-	<ModId Value="" />
+	<ModId Value="89607" />
 	<!--Name of the mod to display to players-->
 	<DisplayName Value="Outside Traffic" />
 	<!--Short description of the mod-->
@@ -33,17 +33,17 @@ Why would you want to change the amount of fake traffic?
 	<Screenshot Value="Properties/screenshot_4.jpg" />
 	<Screenshot Value="Properties/screenshot_5.jpg" />
 	<!--Tag, can be set multiple times-->
-	<Tag Value="traffic" /><Tag Value="fake traffic" /><Tag Value="intersection tester" /><Tag Value="interchange tester" /><Tag Value="traffic spawner" /><Tag Value="outside traffic" />
+	<Tag Value="Code Mod" />
 	<!--Link to the forum post where the mod can be discussed-->
 	<ForumLink Value="" />
 	<!--Version of the mod-->
-	<ModVersion Value="1.0" />
+	<ModVersion Value="1.0.1" />
 	<!--Recommended version of the base game to use the mod-->
 	<GameVersion Value="1.1.*" />
 	<!--Dependency for the mod, can be set multiple times-->
 	<Dependency Id="" />
 	<!--Change log for new version. Single line or multi line. Supports minimal markdown subset-->
-	<ChangeLog Value="" />
+	<ChangeLog Value="missing files added" />
 	<!--ChangeLog>
 	</ChangeLog-->
 	<!--External link. supported types are discord, github, youtube, twitch, x, paypal, patreon, buymeacoffee, kofi, crowdin, gitlab-->
