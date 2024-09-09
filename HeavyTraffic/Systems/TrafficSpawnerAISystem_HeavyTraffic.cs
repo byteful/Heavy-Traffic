@@ -154,7 +154,7 @@ namespace HeavyTraffic.Systems
                 m_CreaturePrefabChunks = archetypeChunkListAsync,
                 m_CurrentLaneTypesRelative = m_CurrentLaneTypesRelative,
                 m_CommandBuffer = m_EndFrameBarrier.CreateCommandBuffer().AsParallelWriter(),
-                m_CustomTrafficRate = Mod.Settings.fake_traffic_spawn_rate
+                m_CustomTrafficRate = Mod.Settings.TotalOutsideTrafficPercent
             }.ScheduleParallel(m_BuildingQuery,
                 JobUtils.CombineDependencies(Dependency, jobHandle1, jobHandle2, outJobHandle));
             m_PersonalCarSelectData.PostUpdate(jobHandle3);
