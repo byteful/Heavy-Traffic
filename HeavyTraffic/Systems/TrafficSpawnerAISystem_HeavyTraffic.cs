@@ -253,79 +253,126 @@ namespace HeavyTraffic.Systems
                 PrefabRef prefabRef,
                 DynamicBuffer<ServiceDispatch> dispatches)
             {
-                // MOD START
+                // --- Calculate multipliers based on custom rate ---
                 float spawnRateMultiplierFloat = m_CustomTrafficRate / 100f;
                 int spawnRateMultiplierInt = m_CustomTrafficRate / 100;
-                
                 int smallPercentageLeft = m_CustomTrafficRate % 100;
-                // Spawn rate is discrete, since we either spawn a vehicle(s) or not, so decide by chance if spawn this tick or not
+                // Handle fractional part for integer multiplier
                 if (smallPercentageLeft != 0 && random.NextFloat(0, 100) < smallPercentageLeft)
                 {
                     spawnRateMultiplierInt++;
                 }
-                
-                if(spawnRateMultiplierInt == 0)
+
+                // --- Early exit if multiplier is zero ---
+                // NEW: Moved this check higher, applies before determining spawner type
+                if (m_CustomTrafficRate == 0) // Check original rate, not potentially incremented int
                 {
-                    return;
+                    // If rate is exactly 0, never spawn anything via this system's modifications
+                    // Clear existing dispatches that might be random traffic requests
+                    // to prevent vanilla spawning through lingering requests from this system.
+                    for (int i = dispatches.Length - 1; i >= 0; --i)
+                    {
+                        if (m_RandomTrafficRequestData.HasComponent(dispatches[i].m_Request))
+                        {
+                            m_CommandBuffer.DestroyEntity(jobIndex, dispatches[i].m_Request); // Destroy the request itself
+                            dispatches.RemoveAt(i);
+                        }
+                    }
+                    return; // Skip all spawning logic
                 }
-                // MOD END
-                
+                // If multiplier became 0 due to rounding down but original rate > 0, we still proceed
+                // but the effective rate will be very low (only from the fractional check above).
+
+                // --- Get Spawner Data and Determine Type ---
                 TrafficSpawnerData prefabTrafficSpawnerData = m_PrefabTrafficSpawnerData[prefabRef.m_Prefab];
-                
-                // ORIG START
-                // float num1 = prefabTrafficSpawnerData.m_SpawnRate * 4.266667f;
-                // float num2 = random.NextFloat(num1 * 0.5f, num1 * 1.5f);
-                // if (MathUtils.RoundToIntRandom(ref random, num2) > 0 &&
-                // !m_RandomTrafficRequestData.HasComponent(trafficSpawner.m_TrafficRequest))
-                // {
-                //     RequestVehicle(jobIndex, ref random, entity, prefabTrafficSpawnerData);
-                // }
-                // ORIG END
-                
-                // MOD START
-                // The original UpdateInterval was 256, but we changed it to 4. This is a compensation for that.
-                const float updateIntervalChangeFix = (256 / 4);
-                float requestChance = 1f / updateIntervalChangeFix;
-                
-                requestChance *= spawnRateMultiplierFloat;
-                
-                bool shouldSpawnThisTick = random.NextFloat(0, 1) <= requestChance;
-                
-                if (shouldSpawnThisTick &&
-                    !m_RandomTrafficRequestData.HasComponent(trafficSpawner.m_TrafficRequest))
+                // NEW: Check if this spawner handles road vehicles (Cars/Trucks)
+                bool isRoadSpawner = (prefabTrafficSpawnerData.m_RoadType & RoadTypes.Car) != RoadTypes.None;
+
+                // --- Decide whether to Request a New Vehicle (Conditional Logic) ---
+                const float updateIntervalChangeFix = (256f / 4f); // Compensation for faster update interval (use float for division)
+                float baseRequestChance = 1f / updateIntervalChangeFix; // Base chance derived from faster update rate
+
+                bool shouldSpawnThisTick;
+                if (isRoadSpawner)
                 {
+                    // MODIFIED: Apply custom rate multiplier ONLY to road spawners
+                    float moddedRequestChance = baseRequestChance * spawnRateMultiplierFloat;
+                    shouldSpawnThisTick = random.NextFloat(0, 1) <= moddedRequestChance;
+                }
+                else
+                {
+                    // NEW: For non-road spawners (planes, trains, boats), use only the base chance
+                    // This ensures they still benefit from the faster update tick if needed, but ignore the custom multiplier.
+                    shouldSpawnThisTick = random.NextFloat(0, 1) <= baseRequestChance;
+                }
+
+                // --- Request Vehicle if needed ---
+                if (shouldSpawnThisTick && !m_RandomTrafficRequestData.HasComponent(trafficSpawner.m_TrafficRequest))
+                {
+                    // Call RequestVehicle regardless of type, but the *chance* of calling it was determined conditionally above.
                     RequestVehicle(jobIndex, ref random, entity, prefabTrafficSpawnerData);
                 }
-                // MOD END
-                
-                for (int index1 = 0; index1 < dispatches.Length; ++index1)
+
+                // --- Process Existing Dispatches (Spawn Vehicles) ---
+                for (int index1 = dispatches.Length - 1; index1 >= 0; --index1) // Iterate backwards when removing
                 {
                     Entity request = dispatches[index1].m_Request;
                     if (m_RandomTrafficRequestData.HasComponent(request))
                     {
-                        int num3 = m_Loading >= 0.8999999761581421
-                            ? 1
-                            : ((prefabTrafficSpawnerData.m_RoadType & RoadTypes.Airplane) == RoadTypes.None
-                                ? ((prefabTrafficSpawnerData.m_TrackType & TrackTypes.Train) == TrackTypes.None ? 2 : 0)
-                                : random.NextInt(2));
-                        // MOD START
-                        num3 *= spawnRateMultiplierInt;
-                        // MOD END
-                        
+                        // Calculate base number of vehicles to spawn (closer to original logic)
+                        // Note: This logic might still be influenced by the faster update rate indirectly.
+                        int num3;
+                        bool isAirplaneSpawner = (prefabTrafficSpawnerData.m_RoadType & RoadTypes.Airplane) != RoadTypes.None;
+                        bool isTrainSpawner = (prefabTrafficSpawnerData.m_TrackType & TrackTypes.Train) != TrackTypes.None;
+
+                        if (m_Loading >= 0.9f) // High loading = always 1
+                        {
+                            num3 = 1;
+                        }
+                        else if (isAirplaneSpawner) // Airplanes = 0 or 1
+                        {
+                            num3 = random.NextInt(2);
+                        }
+                        else if (isTrainSpawner) // Trains = 0 (train cars handled differently?)
+                        {
+                            num3 = 0; // Assuming original logic meant 0 vehicles from *this* spawner call for trains
+                        }
+                        else // Default for others (Cars, Boats) = 2
+                        {
+                            num3 = 2;
+                        }
+
+
+                        // MODIFIED: Apply integer multiplier *only* if it's a road spawner
+                        if (isRoadSpawner && spawnRateMultiplierInt > 0) // Also ensure multiplier is positive
+                        {
+                            // Apply the multiplier logic only to road connections
+                            // If num3 was 0 initially (e.g., maybe for trains?), multiplying keeps it 0.
+                            // If num3 was > 0, it gets scaled up.
+                            num3 *= spawnRateMultiplierInt;
+                        }
+                        // If not a road spawner, num3 retains its original calculated value (0, 1, or 2 based on type/loading).
+
+                        // Spawn the calculated number of vehicles
                         for (int index2 = 0; index2 < num3; ++index2)
                         {
+                            // SpawnVehicle handles the logic for *what kind* of vehicle based on the request.
+                            // We don't need to change SpawnVehicle itself.
                             SpawnVehicle(jobIndex, ref random, entity, request, prefabTrafficSpawnerData);
                         }
 
-                        dispatches.RemoveAt(index1--);
+                        // Remove the processed dispatch
+                        // Note: We might want to destroy the request entity itself IF we spawned vehicles for it
+                        // to prevent potential issues if it lingers. Let's destroy it.
+                        m_CommandBuffer.DestroyEntity(jobIndex, request); // NEW: Destroy the request entity
+                        dispatches.RemoveAt(index1); // Remove from buffer
                     }
-                    else
+                    else if (!m_ServiceRequestData.HasComponent(request)) // If it's not a RandomTrafficRequest OR a ServiceRequest...
                     {
-                        if (!m_ServiceRequestData.HasComponent(request))
-                        {
-                            dispatches.RemoveAt(index1--);
-                        }
+                        // It's an invalid/dangling request, remove it.
+                        dispatches.RemoveAt(index1);
                     }
+                    // Else: It's a valid ServiceRequest (e.g., specific industry order), leave it for its own system.
                 }
             }
 
@@ -366,6 +413,8 @@ namespace HeavyTraffic.Systems
                 Entity request,
                 TrafficSpawnerData prefabTrafficSpawnerData)
             {
+
+
                 RandomTrafficRequest componentData1;
                 PathInformation componentData2;
                 if (!m_RandomTrafficRequestData.TryGetComponent(request, out componentData1) ||
@@ -489,7 +538,7 @@ namespace HeavyTraffic.Systems
 
                     vehicle = m_TransportVehicleSelectData.CreateVehicle(m_CommandBuffer, jobIndex, ref random, transform, source,
                         Entity.Null, Entity.Null, transportType, componentData1.m_EnergyTypes, publicTransportPurpose, cargoResources,
-                        ref passengerCapacity, ref cargoCapacity);
+                        ref passengerCapacity, ref cargoCapacity, false);
                     if (vehicle != Entity.Null)
                     {
                         if (publicTransportPurpose != 0)
